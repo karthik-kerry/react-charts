@@ -243,169 +243,125 @@
 // };
 
 // export default App;
-import { Line } from "@ant-design/plots";
-import { useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { useState } from "react";
 import GridLayout from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
-// ---- Demo Charts ---- //
-const DemoLine = () => {
-  const data = [
-    { year: "1991", value: 3 },
-    { year: "1992", value: 4 },
-    { year: "1993", value: 3.5 },
-    { year: "1994", value: 5 },
-    { year: "1995", value: 4.9 },
-    { year: "1996", value: 6 },
-    { year: "1997", value: 7 },
-    { year: "1998", value: 9 },
-    { year: "1999", value: 13 },
-  ];
-  return <Line data={data} xField="year" yField="value" />;
-};
-
-const DemoLine1 = () => {
-  const data = [
-    { year: "1991", value: 3 },
-    { year: "1992", value: 4 },
-    { year: "1993", value: 3.5 },
-    { year: "1994", value: 5 },
-    { year: "1995", value: 4.9 },
-    { year: "1996", value: 6 },
-    { year: "1997", value: 7 },
-    { year: "1998", value: 9 },
-    { year: "1999", value: 13 },
-  ];
-  return <Line data={data} xField="year" yField="value" smooth />;
-};
+// ---- Demo Charts (replace with your real charts) ---- //
+const DemoLine = () => (
+  <div style={{ background: "#ffe5e5", height: "100%" }}>📈 Line</div>
+);
+const DemoLine1 = () => (
+  <div style={{ background: "#e5ffe5", height: "100%" }}>📉 Line1</div>
+);
+const DemoLine3 = () => (
+  <div style={{ background: "#e5e5ff", height: "100%" }}>📊 Line3</div>
+);
+const DemoLine4 = () => (
+  <div style={{ background: "#fff5e5", height: "100%" }}>📊 Line4</div>
+);
 
 const charts = [
-  { id: "1", title: "Line Chart", component: <DemoLine /> },
-  { id: "2", title: "Smooth Line", component: <DemoLine1 /> },
+  { id: "1", component: <DemoLine />, w: 1, h: 2 },
+  { id: "2", component: <DemoLine1 />, w: 1, h: 2 },
+  { id: "3", component: <DemoLine3 />, w: 1, h: 2 },
+  { id: "4", component: <DemoLine4 />, w: 1, h: 2 },
 ];
 
-// ---- App Component ---- //
-const App = () => {
-  const chartRef = useRef();
+export default function App() {
   const [layout, setLayout] = useState([]);
-  const [items, setItems] = useState([]);
-  const [showWidgets, setShowWidgets] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Handle drop from widget
   const onDrop = (layout, layoutItem, _event) => {
-    const chartId = _event.dataTransfer.getData("chartId");
-    const chart = charts.find((c) => c.id === chartId);
+    const chart = charts.find((c) => c.id === layoutItem.i);
     if (chart) {
-      setItems((prev) => [...prev, { i: `${chart.id}-${Date.now()}`, chart }]);
+      layoutItem.w = chart.w;
+      layoutItem.h = chart.h;
     }
+    setLayout(layout);
+    setIsDragging(false);
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      {/* Floating Widgets Icon */}
-      <button
-        onClick={() => setShowWidgets(!showWidgets)}
+    <div style={{ display: "flex" }}>
+      {/* Floating Widgets Panel */}
+      <div
         style={{
           position: "fixed",
-          bottom: 20,
-          right: 20,
-          borderRadius: "50%",
-          width: 60,
-          height: 60,
-          border: "none",
-          background: "#2563eb",
-          color: "#fff",
-          fontSize: 16,
-          cursor: "pointer",
-          zIndex: 2000,
+          top: 20,
+          left: 20,
+          background: "#fff",
+          border: "1px solid #ccc",
+          borderRadius: 10,
+          padding: 10,
+          width: 160,
+          zIndex: 1000,
         }}
       >
-        📊
-        <div style={{ fontSize: 10 }}>Widgets</div>
-      </button>
-
-      {/* Widget Drawer */}
-      {showWidgets && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 90,
-            right: 20,
-            background: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            padding: 10,
-            width: 300,
-            maxHeight: 400,
-            overflowY: "auto",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-            zIndex: 2000,
-          }}
-        >
-          <h4 style={{ marginBottom: 10 }}>Available Charts</h4>
+        <h4>📦 Widgets</h4>
+        {charts.map((chart) => (
           <div
+            key={chart.id}
+            draggable
+            unselectable="on"
+            data-grid={{ i: chart.id, w: chart.w, h: chart.h }}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={() => setIsDragging(false)}
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 10,
+              border: "1px solid #aaa",
+              borderRadius: 6,
+              padding: 5,
+              marginBottom: 10,
+              background: "#fafafa",
+              cursor: "grab",
+              height: 80,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            {charts.map((chart) => (
-              <div
-                key={chart.id}
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData("chartId", chart.id)}
-                style={{
-                  border: "1px solid #ccc",
-                  padding: 5,
-                  borderRadius: 6,
-                  background: "#fafafa",
-                  cursor: "grab",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: 12, marginBottom: 4 }}>
-                  {chart.title}
-                </div>
-                <div style={{ height: 100 }}>{chart.component}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Droppable Area */}
-      <h2 style={{ marginBottom: 10 }}>Drop your charts here</h2>
-      <GridLayout
-        className="layout"
-        layout={layout}
-        cols={2}
-        rowHeight={320}
-        width={700}
-        isDroppable={true}
-        onDrop={onDrop}
-        onLayoutChange={(newLayout) => setLayout(newLayout)}
-        compactType={null}
-      >
-        {items.map((item) => (
-          <div
-            key={item.i}
-            style={{
-              border: "1px solid #1b1b1b",
-              borderRadius: 5,
-              padding: 10,
-              background: "#fff",
-            }}
-          >
-            {item.chart.component}
+            {chart.component}
           </div>
         ))}
-      </GridLayout>
+      </div>
+
+      {/* Droppable Grid */}
+      <div style={{ marginLeft: 200, padding: 20, width: "80%" }}>
+        <GridLayout
+          className="layout"
+          layout={layout}
+          cols={3} // ✅ only 3 per row
+          rowHeight={150}
+          width={900} // 3 cols * 300px each
+          isDroppable={true}
+          onDrop={onDrop}
+          style={{
+            background: isDragging ? "#f0f8ff" : "#fafafa", // ✅ highlight drop area
+            border: "2px dashed #ddd",
+            minHeight: "80vh",
+            transition: "background 0.3s ease",
+          }}
+        >
+          {layout.map((item) => {
+            const chart = charts.find((c) => c.id === item.i);
+            return (
+              <div
+                key={item.i}
+                style={{
+                  background: "#fff",
+                  border: "1px solid #ccc",
+                  borderRadius: 8,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                  padding: 10,
+                }}
+              >
+                {chart?.component}
+              </div>
+            );
+          })}
+        </GridLayout>
+      </div>
     </div>
   );
-};
-
-export default App;
+}
