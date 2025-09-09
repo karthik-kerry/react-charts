@@ -187,7 +187,7 @@ const Dashboard = () => {
                 style={{
                   position: "absolute",
                   top: 8,
-                  right: 8,
+                  right: 44,
                   background: "#2563eb",
                   color: "#fff",
                   border: "none",
@@ -200,9 +200,37 @@ const Dashboard = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  zIndex: 2,
                 }}
               >
                 🔍
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setWidgets((prev) => prev.filter((item) => item.i !== w.i));
+                }}
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  background: "#ef4444",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 28,
+                  height: 28,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  zIndex: 2,
+                }}
+                title="Delete"
+              >
+                🗑️
               </button>
             </div>
           ))}
