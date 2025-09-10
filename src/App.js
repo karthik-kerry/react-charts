@@ -68,7 +68,7 @@ const Dashboard = () => {
 
   const availableWidgets = [
     { id: "w1", color: "red", type: "line", label: "Line Chart", w: 1, h: 1 },
-    { id: "w2", color: "blue", type: "bar", label: "Bar Chart", w: 1, h: 1 },
+    { id: "w2", color: "blue", type: "bar", label: "Bar Chart", w: 2, h: 1 },
     { id: "w3", color: "green", type: "pie", label: "Pie Chart", w: 1, h: 1 },
   ];
 
@@ -211,7 +211,6 @@ const Dashboard = () => {
           right: 20,
           display: "flex",
           gap: 10,
-          zIndex: 2,
         }}
       >
         <button
@@ -313,14 +312,9 @@ const Dashboard = () => {
           transition: "background 0.2s",
         }}
       >
+        {/* Dashboard Grid */}
         <GridLayout
-          layout={widgets.map((w) => ({
-            i: w.i,
-            x: w.x || 0,
-            y: w.y || Infinity, // let RGL place it automatically
-            w: w.w,
-            h: w.h,
-          }))}
+          layout={layout}
           cols={3}
           rowHeight={250}
           width={1150}
