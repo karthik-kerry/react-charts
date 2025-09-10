@@ -313,7 +313,6 @@ const Dashboard = () => {
           transition: "background 0.2s",
         }}
       >
-        {/* Dashboard Grid */}
         <GridLayout
           layout={widgets.map((w) => ({
             i: w.i,
@@ -328,6 +327,7 @@ const Dashboard = () => {
           margin={[50, 50]}
           containerPadding={[20, 20]}
           onLayoutChange={handleLayoutChange}
+          onDrop={handleDrop}
           isDroppable={true}
           droppingClassName="grid-dropping"
           droppingItem={{
@@ -341,9 +341,71 @@ const Dashboard = () => {
           {widgets.map((w) => (
             <div
               key={w.i}
-              style={{ background: "#fff", border: "1px solid #ccc" }}
+              style={{
+                background: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: 10,
+                padding: 10,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                position: "relative",
+              }}
             >
               <ChartRenderer type={w.type} color={w.color} />
+
+              {/* Modal Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveWidget(w);
+                }}
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 44,
+                  background: "#2563eb",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 28,
+                  height: 28,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  zIndex: 2,
+                }}
+              >
+                🔍
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setWidgets((prev) => prev.filter((item) => item.i !== w.i));
+                }}
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  background: "#ef4444",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 28,
+                  height: 28,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  zIndex: 2,
+                }}
+                title="Delete"
+              >
+                🗑️
+              </button>
             </div>
           ))}
         </GridLayout>
