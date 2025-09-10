@@ -80,24 +80,33 @@ const Dashboard = () => {
     }
   }, []);
 
-  const handleLayoutChange = (newLayout) => setLayout(newLayout);
+  const handleLayoutChange = (newLayout) => {
+    setLayout(newLayout);
+
+    setWidgets((prevWidgets) =>
+      prevWidgets.map((w) => {
+        const updated = newLayout.find((l) => l.i === w.i);
+        return updated ? { ...w, ...updated } : w;
+      })
+    );
+  };
 
   const handleDrop = (layout, layoutItem, e) => {
     setDragOver(false);
     const widgetId = e.dataTransfer.getData("widgetId");
     const widget = availableWidgets.find((w) => w.id === widgetId);
     if (widget) {
-      setWidgets((prev) => [
-        ...prev,
-        {
-          ...widget,
-          i: widgetId + Date.now(),
-          x: dropPosition.x,
-          y: dropPosition.y,
-          w: widget.type === "bar" ? 2 : 1, // bar = 2 columns
-          h: 1,
-        },
-      ]);
+      const newWidget = {
+        ...widget,
+        i: widgetId + Date.now(),
+        x: dropPosition.x,
+        y: dropPosition.y,
+        w: widget.type === "bar" ? 2 : 1, // ✅ initial width
+        h: 1,
+      };
+
+      setWidgets((prev) => [...prev, newWidget]);
+      setLayout((prev) => [...prev, newWidget]); // ✅ sync layout too
     }
   };
 
