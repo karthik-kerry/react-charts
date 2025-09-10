@@ -355,60 +355,88 @@ const Dashboard = () => {
             >
               <ChartRenderer type={w.type} color={w.color} />
 
-              {/* Modal Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveWidget(w);
-                }}
-                style={{
-                  position: "absolute",
-                  top: 8,
-                  right: 44,
-                  background: "#2563eb",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 28,
-                  height: 28,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                  zIndex: 2,
-                }}
+              {/* Ellipsis menu trigger */}
+              <div
+                className="no-drag"
+                style={{ position: "absolute", top: 8, right: 8 }}
               >
-                🔍
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setWidgets((prev) => prev.filter((item) => item.i !== w.i));
-                }}
-                style={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  background: "#ef4444",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 28,
-                  height: 28,
-                  fontSize: 14,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                  zIndex: 2,
-                }}
-                title="Delete"
-              >
-                🗑️
-              </button>
+                <button
+                  className="no-drag"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWidgets((prev) =>
+                      prev.map((item) =>
+                        item.i === w.i
+                          ? { ...item, showMenu: !item.showMenu }
+                          : item
+                      )
+                    );
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    fontSize: 18,
+                    cursor: "pointer",
+                  }}
+                >
+                  ⋮
+                </button>
+
+                {w.showMenu && (
+                  <div
+                    className="no-drag"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      background: "#fff",
+                      border: "1px solid #ddd",
+                      borderRadius: 6,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      padding: "4px 0",
+                      zIndex: 10,
+                    }}
+                  >
+                    <div
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveWidget(w);
+                        setWidgets((prev) =>
+                          prev.map((item) =>
+                            item.i === w.i ? { ...item, showMenu: false } : item
+                          )
+                        );
+                      }}
+                      style={{
+                        padding: "6px 12px",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      🔍 Preview
+                    </div>
+                    <div
+                      onMouseDown={(e) => e.stopPropagation()} // ⛔ and here
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setWidgets((prev) =>
+                          prev.filter((item) => item.i !== w.i)
+                        );
+                      }}
+                      style={{
+                        padding: "6px 12px",
+                        cursor: "pointer",
+                        color: "red",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      🗑️ Delete
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </GridLayout>
