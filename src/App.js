@@ -312,24 +312,6 @@ const Dashboard = () => {
           </div>
 
           <div style={{ marginTop: 20, flex: 1, overflowY: "auto" }}>
-            {/* {availableWidgets.map((w) => (
-              <div
-                key={w.id}
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData("widgetId", w.id)}
-                style={{
-                  padding: 10,
-                  marginBottom: 10,
-                  background: "#fff",
-                  border: "1px solid #ccc",
-                  borderRadius: 6,
-                  cursor: "grab",
-                  textAlign: "center",
-                }}
-              >
-                Chart ({w.label})
-              </div>
-            ))} */}
             {availableWidgets.map((w) => (
               <div
                 key={w.id}
