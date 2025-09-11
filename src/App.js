@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import GridLayout from "react-grid-layout";
 import { Column, Line, Pie } from "@ant-design/plots";
 import html2canvas from "html2canvas";
+import barPreview from "./assets/barChart.jpg";
+import linePreview from "./assets/lineChart.jpg";
+import piePreview from "./assets/pieChart.jpg";
 
 const ChartRenderer = ({ type, color }) => {
   const data = [
@@ -68,9 +71,33 @@ const Dashboard = () => {
   const [newName, setNewName] = useState("");
 
   const availableWidgets = [
-    { id: "w1", color: "red", type: "line", label: "Line Chart", w: 1, h: 1 },
-    { id: "w2", color: "blue", type: "bar", label: "Bar Chart", w: 2, h: 1 },
-    { id: "w3", color: "green", type: "pie", label: "Pie Chart", w: 1, h: 1 },
+    {
+      id: "w1",
+      color: "red",
+      type: "line",
+      label: "Line Chart",
+      preview: linePreview,
+      w: 1,
+      h: 1,
+    },
+    {
+      id: "w2",
+      color: "blue",
+      type: "bar",
+      label: "Bar Chart",
+      preview: barPreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w3",
+      color: "green",
+      type: "pie",
+      label: "Pie Chart",
+      preview: piePreview,
+      w: 1,
+      h: 1,
+    },
   ];
 
   // Load dashboards from localStorage
@@ -285,7 +312,7 @@ const Dashboard = () => {
           </div>
 
           <div style={{ marginTop: 20, flex: 1, overflowY: "auto" }}>
-            {availableWidgets.map((w) => (
+            {/* {availableWidgets.map((w) => (
               <div
                 key={w.id}
                 draggable
@@ -301,6 +328,33 @@ const Dashboard = () => {
                 }}
               >
                 Chart ({w.label})
+              </div>
+            ))} */}
+            {availableWidgets.map((w) => (
+              <div
+                key={w.id}
+                draggable
+                onDragStart={(e) => e.dataTransfer.setData("widgetId", w.id)}
+                style={{
+                  padding: 10,
+                  marginBottom: 15,
+                  background: "#fff",
+                  border: "1px solid #ccc",
+                  borderRadius: 6,
+                  cursor: "grab",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{ fontSize: 14, fontWeight: "bold", marginBottom: 6 }}
+                >
+                  {w.label}
+                </div>
+                <img
+                  src={w.preview}
+                  alt={`${w.label} preview`}
+                  style={{ width: "100%", height: 100, objectFit: "contain" }}
+                />
               </div>
             ))}
           </div>
