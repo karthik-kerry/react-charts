@@ -5,24 +5,40 @@ import html2canvas from "html2canvas";
 import barPreview from "./assets/barChart.jpg";
 import linePreview from "./assets/lineChart.jpg";
 import piePreview from "./assets/pieChart.jpg";
+import axios from "axios";
 
-const ChartRenderer = ({ type, color }) => {
-  const data = [
-    { year: "1991", value: 3 },
-    { year: "1992", value: 4 },
-    { year: "1993", value: 3.5 },
-    { year: "1994", value: 5 },
-    { year: "1995", value: 4.9 },
-    { year: "1996", value: 6 },
-    { year: "1997", value: 7 },
-    { year: "1998", value: 9 },
-    { year: "1999", value: 13 },
-  ];
+const ChartRenderer = ({ type, color, data }) => {
+  let chartData = [];
+  if (data && data.length > 0) {
+    if (type === "line" || type === "bar") {
+      chartData = data.map((item) => ({
+        year: item.title,
+        value: item.price,
+      }));
+    } else if (type === "pie") {
+      chartData = data.map((item) => ({
+        year: item.category,
+        value: item.stock,
+      }));
+    }
+  } else {
+    chartData = [
+      { year: "1991", value: 3 },
+      { year: "1992", value: 4 },
+      { year: "1993", value: 3.5 },
+      { year: "1994", value: 5 },
+      { year: "1995", value: 4.9 },
+      { year: "1996", value: 6 },
+      { year: "1997", value: 7 },
+      { year: "1998", value: 9 },
+      { year: "1999", value: 13 },
+    ];
+  }
 
   if (type === "line") {
     return (
       <Line
-        data={data}
+        data={chartData}
         xField="year"
         yField="value"
         style={{ lineWidth: 3, stroke: color }}
@@ -34,7 +50,7 @@ const ChartRenderer = ({ type, color }) => {
   if (type === "bar") {
     return (
       <Column
-        data={data}
+        data={chartData}
         xField="year"
         yField="value"
         color={color}
@@ -46,7 +62,7 @@ const ChartRenderer = ({ type, color }) => {
   if (type === "pie") {
     return (
       <Pie
-        data={data}
+        data={chartData}
         angleField="value"
         colorField="year"
         radius={0.9}
@@ -69,6 +85,20 @@ const Dashboard = () => {
   const [dashboards, setDashboards] = useState({});
   const [selectedDashboard, setSelectedDashboard] = useState("");
   const [newName, setNewName] = useState("");
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchContracts = async () => {
+      try {
+        const endpoint = "https://dummyjson.com/products";
+        const res = await axios.get(endpoint);
+        setData(res.data.products);
+      } catch (error) {
+        console.log("Error fetching contracts:", error);
+      }
+    };
+    fetchContracts();
+  }, []);
 
   const availableWidgets = [
     {
@@ -391,7 +421,7 @@ const Dashboard = () => {
                 position: "relative",
               }}
             >
-              <ChartRenderer type={w.type} color={w.color} />
+              <ChartRenderer data={data} type={w.type} color={w.color} />
 
               {/* Ellipsis menu trigger */}
               <div
@@ -561,6 +591,7 @@ const Dashboard = () => {
               <ChartRenderer
                 type={activeWidget.type}
                 color={activeWidget.color}
+                data={data}
               />
             </div>
           </div>
