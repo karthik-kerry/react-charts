@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import GridLayout from "react-grid-layout";
 import { Column, Line, Pie } from "@ant-design/plots";
+import html2canvas from "html2canvas";
 
 const ChartRenderer = ({ type, color }) => {
   const data = [
@@ -101,12 +102,12 @@ const Dashboard = () => {
         i: widgetId + Date.now(),
         x: dropPosition.x,
         y: dropPosition.y,
-        w: widget.type === "bar" ? 2 : 1, // ✅ initial width
+        w: widget.type === "bar" ? 2 : 1,
         h: 1,
       };
 
       setWidgets((prev) => [...prev, newWidget]);
-      setLayout((prev) => [...prev, newWidget]); // ✅ sync layout too
+      setLayout((prev) => [...prev, newWidget]);
     }
   };
 
@@ -220,6 +221,7 @@ const Dashboard = () => {
           right: 20,
           display: "flex",
           gap: 10,
+          zIndex: 2,
         }}
       >
         <button
@@ -229,8 +231,8 @@ const Dashboard = () => {
             color: "#fff",
             border: "none",
             borderRadius: "50%",
-            width: 60,
-            height: 60,
+            width: 50,
+            height: 50,
             fontSize: 16,
             cursor: "pointer",
             boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
@@ -456,6 +458,7 @@ const Dashboard = () => {
           }}
         >
           <div
+            id="preview-container" // add id to capture
             style={{
               background: "#fff",
               borderRadius: 12,
@@ -469,6 +472,7 @@ const Dashboard = () => {
             }}
           >
             <button
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => setActiveWidget(null)}
               style={{
                 position: "absolute",
@@ -483,6 +487,38 @@ const Dashboard = () => {
               }}
             >
               Close
+            </button>
+
+            <button
+              onClick={async () => {
+                const element = document.getElementById("preview-container");
+
+                const buttons = element.querySelectorAll("button");
+                buttons.forEach((btn) => (btn.style.display = "none"));
+
+                const canvas = await html2canvas(element);
+                const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
+
+                buttons.forEach((btn) => (btn.style.display = ""));
+
+                const link = document.createElement("a");
+                link.href = dataUrl;
+                link.download = `${activeWidget.label || "chart"}.jpg`;
+                link.click();
+              }}
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 70,
+                background: "#10b981",
+                border: "none",
+                borderRadius: 6,
+                color: "#fff",
+                padding: "5px 10px",
+                cursor: "pointer",
+              }}
+            >
+              📥 Download JPG
             </button>
 
             <div style={{ flex: 1 }}>
