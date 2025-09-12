@@ -88,7 +88,7 @@ const Dashboard = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    const fetchContracts = async () => {
+    const fetchData = async () => {
       try {
         const endpoint = "https://dummyjson.com/products";
         const res = await axios.get(endpoint);
@@ -97,7 +97,7 @@ const Dashboard = () => {
         console.log("Error fetching contracts:", error);
       }
     };
-    fetchContracts();
+    fetchData();
   }, []);
 
   const availableWidgets = [
