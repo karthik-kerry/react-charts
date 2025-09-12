@@ -10,28 +10,49 @@ import axios from "axios";
 const ChartRenderer = ({ type, color, data }) => {
   let chartData = [];
   if (data && data.length > 0) {
+    const now = new Date();
+    let expiring = 0;
+    let ongoing = 0;
+    let expired = 0;
+
+    data.forEach((item) => {
+      const endDateStr = item.asset?.expiry_date;
+      const startDateStr = item.asset?.commencement_date;
+      if (!endDateStr) return;
+
+      const endDate = new Date(endDateStr);
+      const startDate = startDateStr ? new Date(startDateStr) : null;
+
+      if (endDate < now) {
+        expired += 1;
+      } else if (
+        (endDate - now) / (1000 * 60 * 60 * 24) <= 30 &&
+        endDate > now
+      ) {
+        expiring += 1;
+      } else if (!startDate || (startDate <= now && endDate > now)) {
+        ongoing += 1;
+      }
+    });
+
     if (type === "line" || type === "bar") {
-      chartData = data.map((item) => ({
-        year: item.title,
-        value: item.price,
-      }));
+      chartData = [
+        { status: "Expiring Contracts", count: expiring },
+        { status: "Ongoing Contracts", count: ongoing },
+        { status: "Expired Contracts", count: expired },
+      ];
     } else if (type === "pie") {
-      chartData = data.map((item) => ({
-        year: item.category,
-        value: item.stock,
-      }));
+      chartData = [
+        { status: "Expiring Contracts", value: expiring },
+        { status: "Ongoing Contracts", value: ongoing },
+        { status: "Expired Contracts", value: expired },
+      ];
     }
   } else {
     chartData = [
-      { year: "1991", value: 3 },
-      { year: "1992", value: 4 },
-      { year: "1993", value: 3.5 },
-      { year: "1994", value: 5 },
-      { year: "1995", value: 4.9 },
-      { year: "1996", value: 6 },
-      { year: "1997", value: 7 },
-      { year: "1998", value: 9 },
-      { year: "1999", value: 13 },
+      { status: "Expiring Contracts", count: 1 },
+      { status: "Ongoing Contracts", count: 2 },
+      { status: "Expired Contracts", count: 3 },
     ];
   }
 
@@ -39,8 +60,8 @@ const ChartRenderer = ({ type, color, data }) => {
     return (
       <Line
         data={chartData}
-        xField="year"
-        yField="value"
+        xField="status"
+        yField="count"
         style={{ lineWidth: 3, stroke: color }}
         point={{ sizeField: 5 }}
       />
@@ -51,8 +72,8 @@ const ChartRenderer = ({ type, color, data }) => {
     return (
       <Column
         data={chartData}
-        xField="year"
-        yField="value"
+        xField="status"
+        yField="count"
         color={color}
         columnStyle={{ radius: [4, 4, 0, 0] }}
       />
@@ -64,7 +85,7 @@ const ChartRenderer = ({ type, color, data }) => {
       <Pie
         data={chartData}
         angleField="value"
-        colorField="year"
+        colorField="status"
         radius={0.9}
         legend={{ position: "bottom" }}
       />
@@ -73,7 +94,6 @@ const ChartRenderer = ({ type, color, data }) => {
 
   return null;
 };
-
 const Dashboard = () => {
   const [layout, setLayout] = useState([]);
   const [widgets, setWidgets] = useState([]);
@@ -89,10 +109,16 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!data) return;
       try {
-        const endpoint = "https://dummyjson.com/products";
-        const res = await axios.get(endpoint);
-        setData(res.data.products);
+        const endpoint =
+          "http://182.72.177.132:7733/asset/asset_list/12/78/68/";
+        const headers = {
+          Authorization: "Token 5d66d47f49369e263886c36ceab8d7d5e8510c17",
+        };
+
+        const res = await axios.get(endpoint, { headers });
+        setData(res.data.response_data);
       } catch (error) {
         console.log("Error fetching contracts:", error);
       }
