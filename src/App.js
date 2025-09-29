@@ -1,25 +1,42 @@
 import React, { useEffect, useState } from "react";
 import GridLayout from "react-grid-layout";
-import { Column, Line, Pie } from "@ant-design/plots";
+import {
+  Column,
+  Line,
+  Pie,
+  Area,
+  Treemap,
+  Heatmap,
+  DualAxes,
+  Funnel,
+  Venn,
+} from "@ant-design/plots";
 import html2canvas from "html2canvas";
 import barPreview from "./assets/barChart.jpg";
 import linePreview from "./assets/lineChart.jpg";
 import piePreview from "./assets/pieChart.jpg";
+import areaPreview from "./assets/areaChart.png";
+import treePreview from "./assets/treeChart.png";
+import heatMapPreview from "./assets/heatmapChart.png";
+import duallinePreview from "./assets/duallineChart.png";
+import duallinestyledPreview from "./assets/duallineStyledChart.png";
+import groupedBarPreview from "./assets/groupedBarChart.png";
+import groupedColumnMultiLinePreview from "./assets/groupedColumnMultiLine.png";
+import funnelPreview from "./assets/funnelChart.png";
+import vennPreview from "./assets/vennChart.png";
 import axios from "axios";
 
 const ChartRenderer = ({ type, color, data }) => {
-  let chartData = [];
-  if (data && data.length > 0) {
-    const now = new Date();
-    let expiring = 0;
-    let ongoing = 0;
-    let expired = 0;
+  const now = new Date();
+  let expiring = 0;
+  let ongoing = 0;
+  let expired = 0;
 
+  if (data && data.length > 0) {
     data.forEach((item) => {
       const endDateStr = item.asset?.expiry_date;
       const startDateStr = item.asset?.commencement_date;
       if (!endDateStr) return;
-
       const endDate = new Date(endDateStr);
       const startDate = startDateStr ? new Date(startDateStr) : null;
 
@@ -34,32 +51,22 @@ const ChartRenderer = ({ type, color, data }) => {
         ongoing += 1;
       }
     });
-
-    if (type === "line" || type === "bar") {
-      chartData = [
-        { status: "Expiring Contracts", count: expiring },
-        { status: "Ongoing Contracts", count: ongoing },
-        { status: "Expired Contracts", count: expired },
-      ];
-    } else if (type === "pie") {
-      chartData = [
-        { status: "Expiring Contracts", value: expiring },
-        { status: "Ongoing Contracts", value: ongoing },
-        { status: "Expired Contracts", value: expired },
-      ];
-    }
   } else {
-    chartData = [
-      { status: "Expiring Contracts", count: 1 },
-      { status: "Ongoing Contracts", count: 2 },
-      { status: "Expired Contracts", count: 3 },
-    ];
+    expiring = 1;
+    ongoing = 2;
+    expired = 3;
   }
+
+  const basic = [
+    { status: "Expiring Contracts", count: expiring, value: expiring },
+    { status: "Ongoing Contracts", count: ongoing, value: ongoing },
+    { status: "Expired Contracts", count: expired, value: expired },
+  ];
 
   if (type === "line") {
     return (
       <Line
-        data={chartData}
+        data={basic}
         xField="status"
         yField="count"
         style={{ lineWidth: 3, stroke: color }}
@@ -68,10 +75,10 @@ const ChartRenderer = ({ type, color, data }) => {
     );
   }
 
-  if (type === "bar") {
+  if (type === "bar" || type === "column") {
     return (
       <Column
-        data={chartData}
+        data={basic}
         xField="status"
         yField="count"
         color={color}
@@ -81,9 +88,10 @@ const ChartRenderer = ({ type, color, data }) => {
   }
 
   if (type === "pie") {
+    const pieData = basic.map((d) => ({ status: d.status, value: d.value }));
     return (
       <Pie
-        data={chartData}
+        data={pieData}
         angleField="value"
         colorField="status"
         radius={0.9}
@@ -92,8 +100,144 @@ const ChartRenderer = ({ type, color, data }) => {
     );
   }
 
-  return null;
+  if (type === "area") {
+    return (
+      <Area
+        data={basic}
+        xField="status"
+        yField="count"
+        areaStyle={{ fill: color }}
+      />
+    );
+  }
+
+  if (type === "treemap") {
+    const treeData = {
+      name: "contracts",
+      children: basic.map((d) => ({ name: d.status, value: d.count })),
+    };
+    return <Treemap data={treeData} tile="binary" />;
+  }
+
+  if (type === "heatmap") {
+    const categories = ["A", "B", "C"];
+    const heatData = [];
+    categories.forEach((cat, i) => {
+      basic.forEach((b, j) => {
+        heatData.push({ x: b.status, y: cat, value: (i + 1) * (j + 1) });
+      });
+    });
+    return <Heatmap data={heatData} xField="x" yField="y" colorField="value" />;
+  }
+
+  if (type === "dual-line" || type === "dualaxes" || type === "dual-axis") {
+    const x = ["Expiring", "Ongoing", "Expired"];
+    const left = x.map((k, i) => ({ x: k, y: basic[i].count }));
+    const right = x.map((k, i) => ({ x: k, y: basic[i].count * (i + 1) }));
+
+    const config = {
+      data: [left, right],
+      xField: "x",
+      yField: ["y", "y"],
+      geometryOptions: [
+        { geometry: "line", smooth: true, lineStyle: { stroke: color } },
+        { geometry: "line", smooth: true, lineStyle: { stroke: "#ff7a45" } },
+      ],
+    };
+    return <DualAxes {...config} />;
+  }
+
+  if (type === "dual-line-with-style") {
+    const x = ["Expiring", "Ongoing", "Expired"];
+    const left = x.map((k, i) => ({ x: k, y: basic[i].count }));
+    const right = x.map((k, i) => ({ x: k, y: basic[i].count * (i + 2) }));
+    return (
+      <DualAxes
+        data={[left, right]}
+        xField="x"
+        yField={["y", "y"]}
+        geometryOptions={[
+          {
+            geometry: "line",
+            smooth: true,
+            lineStyle: { stroke: color, lineDash: [4, 4] },
+          },
+          {
+            geometry: "line",
+            smooth: true,
+            lineStyle: { stroke: "#3333ff", opacity: 0.85 },
+          },
+        ]}
+      />
+    );
+  }
+
+  if (type === "grouped-bar" || type === "grouped-column") {
+    const groupData = [];
+    const companies = ["Org1", "Org2"];
+    basic.forEach((b) => {
+      companies.forEach((c, idx) => {
+        groupData.push({
+          category: b.status,
+          company: c,
+          value: b.count + idx,
+        });
+      });
+    });
+    return (
+      <Column
+        data={groupData}
+        xField="category"
+        yField="value"
+        seriesField="company"
+        isGroup
+      />
+    );
+  }
+
+  if (type === "grouped-column-with-multiline") {
+    const categories = ["Expiring", "Ongoing", "Expired"];
+    const columnData = [];
+    const lineData = [];
+    categories.forEach((cat, i) => {
+      columnData.push({ x: cat, y: basic[i].count * 10, series: "A" });
+      columnData.push({ x: cat, y: basic[i].count * 5, series: "B" });
+
+      lineData.push({ x: cat, y: basic[i].count });
+    });
+
+    return (
+      <DualAxes
+        data={[columnData, lineData]}
+        xField="x"
+        yField={["y", "y"]}
+        geometryOptions={[
+          { geometry: "column", isGroup: true, seriesField: "series" },
+          { geometry: "line", smooth: true, lineStyle: { stroke: color } },
+        ]}
+      />
+    );
+  }
+
+  if (type === "funnel") {
+    const funnelData = basic.map((d) => ({ type: d.status, value: d.count }));
+    return <Funnel data={funnelData} xField="type" yField="value" />;
+  }
+
+  if (type === "venn") {
+    const vennData = [
+      { sets: ["A"], size: ongoing + 1 },
+      { sets: ["B"], size: expiring + 1 },
+      { sets: ["A", "B"], size: Math.min(ongoing, expiring) },
+    ];
+    return <Venn data={vennData} />;
+  }
+
+  return (
+    <div style={{ padding: 20 }}>No preview available for this chart type.</div>
+  );
 };
+
 const Dashboard = () => {
   const [layout, setLayout] = useState([]);
   const [widgets, setWidgets] = useState([]);
@@ -109,14 +253,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!data) return;
       try {
         const endpoint =
           "http://182.72.177.132:7733/asset/asset_list/12/78/68/";
         const headers = {
           Authorization: "Token a6ad3147ff248970157308b729daac63368c8a88",
         };
-
         const res = await axios.get(endpoint, { headers });
         setData(res.data.response_data);
       } catch (error) {
@@ -140,7 +282,7 @@ const Dashboard = () => {
       id: "w2",
       color: "blue",
       type: "bar",
-      label: "Bar Chart",
+      label: "Bar / Column",
       preview: barPreview,
       w: 2,
       h: 1,
@@ -154,19 +296,96 @@ const Dashboard = () => {
       w: 1,
       h: 1,
     },
+    {
+      id: "w4",
+      color: "#16a34a",
+      type: "area",
+      label: "Area Chart",
+      preview: areaPreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w5",
+      color: "#7c3aed",
+      type: "treemap",
+      label: "Treemap",
+      preview: treePreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w6",
+      color: "#0ea5e9",
+      type: "heatmap",
+      label: "Heatmap",
+      preview: heatMapPreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w7",
+      color: "#ef4444",
+      type: "dualaxes",
+      label: "Dual Line (Dual Axes)",
+      preview: duallinePreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w8",
+      color: "#ff7a45",
+      type: "dual-line-with-style",
+      label: "Dual Line (Styled)",
+      preview: duallinestyledPreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w9",
+      color: "#0ea5e9",
+      type: "grouped-column",
+      label: "Grouped Column / Bar",
+      preview: groupedBarPreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w10",
+      color: "#f59e0b",
+      type: "grouped-column-with-multiline",
+      label: "Grouped Column + Multi Line",
+      preview: groupedColumnMultiLinePreview,
+      w: 3,
+      h: 1,
+    },
+    {
+      id: "w11",
+      color: "#06b6d4",
+      type: "funnel",
+      label: "Funnel",
+      preview: funnelPreview,
+      w: 2,
+      h: 1,
+    },
+    {
+      id: "w12",
+      color: "#ef4444",
+      type: "venn",
+      label: "Venn",
+      preview: vennPreview,
+      w: 2,
+      h: 1,
+    },
   ];
 
-  // Load dashboards from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("dashboards");
-    if (saved) {
-      setDashboards(JSON.parse(saved));
-    }
+    if (saved) setDashboards(JSON.parse(saved));
   }, []);
 
   const handleLayoutChange = (newLayout) => {
     setLayout(newLayout);
-
     setWidgets((prevWidgets) =>
       prevWidgets.map((w) => {
         const updated = newLayout.find((l) => l.i === w.i);
@@ -185,10 +404,9 @@ const Dashboard = () => {
         i: widgetId + Date.now(),
         x: dropPosition.x,
         y: dropPosition.y,
-        w: widget.type === "bar" ? 2 : 1,
-        h: 1,
+        w: widget.w || 1,
+        h: widget.h || 1,
       };
-
       setWidgets((prev) => [...prev, newWidget]);
       setLayout((prev) => [...prev, newWidget]);
     }
@@ -209,10 +427,7 @@ const Dashboard = () => {
       alert("Please enter a dashboard name");
       return;
     }
-    const updated = {
-      ...dashboards,
-      [newName]: { widgets, layout },
-    };
+    const updated = { ...dashboards, [newName]: { widgets, layout } };
     setDashboards(updated);
     localStorage.setItem("dashboards", JSON.stringify(updated));
     setSelectedDashboard(newName);
@@ -333,7 +548,7 @@ const Dashboard = () => {
             right: 0,
             top: 0,
             bottom: 0,
-            width: 250,
+            width: 300,
             background: "#f9fafb",
             borderLeft: "1px solid #ddd",
             padding: 20,
@@ -343,7 +558,6 @@ const Dashboard = () => {
             flexDirection: "column",
           }}
         >
-          {/* Header with Close Button */}
           <div
             style={{
               display: "flex",
@@ -388,11 +602,13 @@ const Dashboard = () => {
                 >
                   {w.label}
                 </div>
-                <img
-                  src={w.preview}
-                  alt={`${w.label} preview`}
-                  style={{ width: "100%", height: 100, objectFit: "contain" }}
-                />
+                {w.preview && (
+                  <img
+                    src={w.preview}
+                    alt={`${w.label} preview`}
+                    style={{ width: "100%", height: 100, objectFit: "contain" }}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -512,7 +728,7 @@ const Dashboard = () => {
                       🔍 Preview
                     </div>
                     <div
-                      onMouseDown={(e) => e.stopPropagation()} // ⛔ and here
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         setWidgets((prev) =>
@@ -550,7 +766,7 @@ const Dashboard = () => {
           }}
         >
           <div
-            id="preview-container" // add id to capture
+            id="preview-container"
             style={{
               background: "#fff",
               borderRadius: 12,
@@ -584,15 +800,11 @@ const Dashboard = () => {
             <button
               onClick={async () => {
                 const element = document.getElementById("preview-container");
-
                 const buttons = element.querySelectorAll("button");
                 buttons.forEach((btn) => (btn.style.display = "none"));
-
                 const canvas = await html2canvas(element);
                 const dataUrl = canvas.toDataURL("image/jpeg", 1.0);
-
                 buttons.forEach((btn) => (btn.style.display = ""));
-
                 const link = document.createElement("a");
                 link.href = dataUrl;
                 link.download = `${activeWidget.label || "chart"}.jpg`;
@@ -625,14 +837,7 @@ const Dashboard = () => {
       )}
 
       {/* Inline CSS for dropping */}
-      <style>
-        {`
-          .grid-dropping {
-            background-color: rgba(37, 99, 235, 0.1);
-            border: 2px dashed #2563eb;
-          }
-        `}
-      </style>
+      <style>{`.grid-dropping { background-color: rgba(37, 99, 235, 0.1); border: 2px dashed #2563eb; }`}</style>
     </div>
   );
 };
