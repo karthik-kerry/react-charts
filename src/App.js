@@ -114,7 +114,7 @@ const Dashboard = () => {
         const endpoint =
           "http://182.72.177.132:7733/asset/asset_list/12/78/68/";
         const headers = {
-          Authorization: "Token 5d66d47f49369e263886c36ceab8d7d5e8510c17",
+          Authorization: "Token a6ad3147ff248970157308b729daac63368c8a88",
         };
 
         const res = await axios.get(endpoint, { headers });
