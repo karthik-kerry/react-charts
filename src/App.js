@@ -25,6 +25,7 @@ import groupedColumnMultiLinePreview from "./assets/groupedColumnMultiLine.png";
 import funnelPreview from "./assets/funnelChart.png";
 import vennPreview from "./assets/vennChart.png";
 import axios from "axios";
+import { token } from "./env";
 
 const ChartRenderer = ({ type, color, data }) => {
   const now = new Date();
@@ -272,7 +273,7 @@ const Dashboard = () => {
         const endpoint =
           "http://182.72.177.132:7733/asset/asset_list/12/78/68/";
         const headers = {
-          Authorization: `Token ${process.env.token}`,
+          Authorization: `Token ${token}`,
         };
         const res = await axios.get(endpoint, { headers });
         setData(res.data.response_data);
